@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://forgetfulengineer.github.io/run-pace-assistant/sitemap.xml
