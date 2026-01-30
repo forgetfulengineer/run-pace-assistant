@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json.schemastore.org/web-manifest-combined.json",
+  "name": "跑步配速助手",
+  "short_name": "配速助手",
+  "description": "跑步配速工具。支援自定義目標與語音回報，提供即時數據儀表板與語音播報功能。跑後生成詳細訓練總結，包含總里程、平均配速及每公里分段數據分析，協助您精確掌握訓練表現，適合長距離跑步、訓練與比賽使用。",
+  "scope": "/run-pace-assistant/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050505",
+  "theme_color": "#050505",
+  "categories": ["sports", "health", "fitness", "utilities"],
+  "lang": "zh-TW",
+  "icons": [
+    {
+      "src": "/run-pace-assistant/img/pwa.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/run-pace-assistant/img/pwa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/run-pace-assistant/img/pwa.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

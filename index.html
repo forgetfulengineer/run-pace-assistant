@@ -1,0 +1,867 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>跑步配速助手 | 即時配速回報與訓練數據追蹤 - 健忘工程師</title>
+    <meta name="description" content="跑步配速工具。支援自定義目標與語音回報，提供即時數據儀表板與語音播報功能。跑後生成詳細訓練總結，包含總里程、平均配速及每公里分段數據分析，協助您精確掌握訓練表現，適合長距離跑步、訓練與比賽使用。">
+    <link rel="canonical" href="https://forgetfulengineer.github.io/run-pace-assistant/">
+    <link rel="icon" type="image/svg+xml" href="/run-pace-assistant/img/favicon.svg">
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="/run-pace-assistant/sitemap.xml">
+    <meta name="author" content="健忘工程師">
+    <meta name="theme-color" content="#050505">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="跑步配速助手 | 即時配速回報與訓練數據追蹤">
+    <meta property="og:description" content="跑步配速工具。支援自定義目標與語音回報，提供即時數據儀表板與語音播報功能。跑後生成詳細訓練總結，包含總里程、平均配速及每公里分段數據分析，協助您精確掌握訓練表現，適合長距離跑步、訓練與比賽使用。">
+    <meta property="og:url" content="https://forgetfulengineer.github.io/run-pace-assistant/">
+    <meta property="og:site_name" content="健忘工程師">
+    <meta property="og:locale" content="zh_TW">
+    <meta property="og:image" content="https://forgetfulengineer.github.io/run-pace-assistant/img/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="跑步配速助手 | 即時配速回報與訓練數據追蹤">
+    <meta name="twitter:image" content="https://forgetfulengineer.github.io/run-pace-assistant/img/og-image.png">
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "跑步配速助手",
+        "url": "https://forgetfulengineer.github.io/run-pace-assistant/",
+        "applicationCategory": "SportsApplication",
+        "operatingSystem": "iOS, Android, Web",
+        "description": "跑步配速工具。支援自定義目標與語音回報，提供即時數據儀表板與語音播報功能。跑後生成詳細訓練總結，包含總里程、平均配速及每公里分段數據分析，協助您精確掌握訓練表現，適合長距離跑步、訓練與比賽使用。",
+        "keywords": "跑步, 配速計算, 馬拉松訓練, 語音播報, 運動數據分析",
+        "inLanguage": "zh-TW",
+        "browserRequirements": "Requires JavaScript enabled",
+        "featureList": [
+            "自訂配速目標與語音回報",
+            "即時配速與時間儀表板",
+            "訓練總結與平均配速分析",
+            "每公里分段數據表格",
+            "落後/領先秒數即時分析"
+        ],
+        "author": {
+            "@type": "Person",
+            "name": "健忘工程師"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "健忘工程師",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://forgetfulengineer.github.io/img/logo.svg"
+            }
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "TWD"
+        }
+    }
+    </script>
+    <link rel="manifest" href="/run-pace-assistant/manifest.json">
+    <meta name="application-name" content="跑步配速助手" />
+    <meta name="apple-mobile-web-app-title" content="跑步配速助手">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" sizes="180x180" href="/run-pace-assistant/img/apple-touch-icon.png.png">
+    <!-- Fonts: Inter for Numbers/English, Noto Sans TC for Chinese -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --surface-color: #1A1A1A;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0A0A0;
+            --accent-color: #00E676;
+            --danger-color: #FF0000;
+            --warning-color: #FFC107;
+            --font-zh: 'Noto Sans TC', sans-serif;
+            --font-en: 'Inter', sans-serif;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --radius: 12px;
+        }
+
+        /* Dark Mode Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: var(--font-zh);
+            overflow: hidden;
+            height: 100dvh;
+        }
+
+        .view-container {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .scroll-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: var(--spacing-lg);
+            padding-bottom: 0;
+        }
+
+        .bottom-actions {
+            padding: var(--spacing-lg);
+            background: linear-gradient(to top, var(--bg-color) 85%, rgba(5,5,5,0));
+            flex-shrink: 0;
+        }
+
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* 全域導覽 Icon */
+        #author-trigger {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            cursor: pointer;
+            color: var(--text-secondary);
+            background: rgba(255, 255, 255, 0.05);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        #author-trigger:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Lightbox 樣式 */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .lightbox-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .lightbox-content {
+            background: var(--surface-color);
+            border: 1px solid #333;
+            border-radius: var(--radius);
+            padding: 30px;
+            width: 90%;
+            max-width: 320px;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+        .lightbox-overlay.active .lightbox-content {
+            transform: scale(1);
+        }
+        .lightbox-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+        }
+        .author-links {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-top: 10px;
+        }
+        .author-link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .author-link-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .link-icon-img {
+            width: 20px;
+            height: 20px;
+            object-fit: contain;
+        }
+
+        /* Notification UI */
+        #notification-host {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .notification {
+            background: rgba(30, 30, 30, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid #444;
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+        }
+
+        @keyframes slideIn { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* Setup View */
+        .setup-header { margin-bottom: var(--spacing-lg); border-left: 4px solid var(--accent-color); padding-left: var(--spacing-md); }
+        .setup-header h1 { font-size: 2rem; margin: 0; }
+
+        .input-group { margin-bottom: var(--spacing-lg); }
+        .label-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-sm); }
+        .input-label { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); font-size: 0.9rem; margin: 0; }
+
+        .input-field {
+            width: 100%;
+            background: var(--surface-color);
+            border: 1px solid #333;
+            color: var(--text-primary);
+            padding: 16px;
+            font-size: 1.2rem;
+            border-radius: var(--radius);
+            font-family: var(--font-en);
+            transition: all 0.2s ease;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .input-field::-ms-expand {
+            display: none;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(0, 230, 118, 0.2);
+            background: #222;
+        }
+
+        .time-inputs { display: flex; gap: var(--spacing-sm); }
+        .time-inputs input { text-align: center; }
+
+        .select-wrapper { position: relative; width: 100%; }
+        .select-icon {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .feature-intro {
+            margin-top: 10px;
+            border: 1px solid #333;
+            border-radius: var(--radius);
+            background: rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+        summary { list-style: none; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.95rem; }
+        .intro-content { padding: 0 16px 16px 16px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
+        .intro-content ul { padding-left: 20px; margin: 8px 0; }
+        .intro-content li { margin-bottom: 4px; }
+
+        /* Active View Display */
+        .main-display {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .label {
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .data-primary { font-family: var(--font-en); font-size: 4.5rem; font-weight: 800; line-height: 1; letter-spacing: -2px; }
+        .data-secondary-group { display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md); width: 100%; margin: 24px 0; }
+        .data-card { background: var(--surface-color); padding: 20px 10px; border-radius: var(--radius); text-align: center; }
+        .data-value { font-family: var(--font-en); font-size: 1.8rem; font-weight: 700; }
+
+        /* Summary View Style Updates */
+        .summary-header h2 { font-size: 2.5rem; margin: 0; }
+        .summary-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin: 24px 0; }
+        .stat-item { background: var(--surface-color); padding: 16px 12px; border-radius: var(--radius); text-align: center; }
+        .stat-item div:last-child { font-family: var(--font-en); font-weight: 700; font-size: 1.2rem; margin-top: 4px; }
+
+        .table-container { background: var(--surface-color); border-radius: var(--radius); overflow: hidden; margin-bottom: 24px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #252525; color: var(--text-secondary); text-align: left; padding: 12px; font-size: 0.9rem; }
+        td { padding: 12px; border-top: 1px solid #333; font-family: var(--font-en); font-size: 1rem; }
+        .row-total { background: rgba(0, 230, 118, 0.1); font-weight: 700; }
+        .delta-pos { color: var(--danger-color); }
+        .delta-neg { color: var(--accent-color); }
+
+        /* Buttons */
+        .btn-group { display: flex; gap: 15px; width: 100%; }
+        .btn {
+            border: none; padding: 18px; font-size: 1.1rem; font-weight: 700; border-radius: 50px;
+            cursor: pointer; font-family: var(--font-zh); width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-primary { background-color: var(--accent-color); color: #000; }
+        .btn-danger { background-color: var(--bg-color); color: var(--danger-color); border: 2px solid var(--danger-color); }
+        .btn-warning { background-color: var(--warning-color); color: #000; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="notification-host"></div>
+
+    <!-- 全域作者 Icon -->
+    <div id="author-trigger">
+        <i data-lucide="user" size="24"></i>
+    </div>
+
+    <!-- 作者資訊 Lightbox -->
+    <div id="author-lightbox" class="lightbox-overlay">
+        <div class="lightbox-content">
+            <div id="lightbox-close" class="lightbox-close">
+                <i data-lucide="x" size="24"></i>
+            </div>
+            <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.2rem;">作者資訊</h3>
+            <div class="author-links">
+                <a href="https://forgetfulengineer.github.io" target="_blank" class="author-link-item">
+                    <img src="https://cdn.jsdelivr.net/gh/forgetfulengineer/forgetfulengineer.github.io/img/favicon.svg" alt="icon" class="link-icon-img">
+                    <span>健忘工程師</span>
+                </a>
+                <a href="https://github.com/forgetfulengineer" target="_blank" class="author-link-item">
+                    <i data-lucide="github" size="20"></i>
+                    <span>健忘工程師 GitHub</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. 設定畫面 -->
+    <div id="setup-view" class="view-container">
+        <div class="scroll-content">
+            <div class="setup-header">
+                <h1>跑步配速助手</h1>
+                <p>自定義目標與語音回報</p>
+            </div>
+
+            <div class="input-group">
+                <div class="label-row">
+                    <label class="input-label"><i data-lucide="map-pin"></i>目標距離 (公里)</label>
+                </div>
+                <input type="number" id="input-dist" class="input-field" placeholder="例如: 5" inputmode="decimal">
+            </div>
+
+            <div class="input-group">
+                <div class="label-row">
+                    <label class="input-label"><i data-lucide="clock"></i>目標完成時間 (時:分:秒)</label>
+                    <span id="target-pace-preview" style="color: var(--accent-color); font-size: 0.9rem; font-weight: 600;"></span>
+                </div>
+                <div class="time-inputs">
+                    <input type="number" id="input-h" class="input-field" placeholder="00">
+                    <input type="number" id="input-m" class="input-field" placeholder="00">
+                    <input type="number" id="input-s" class="input-field" placeholder="00">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="label-row">
+                    <label class="input-label"><i data-lucide="volume-2"></i>語音回報間隔</label>
+                </div>
+                <div class="select-wrapper">
+                    <select id="input-speech-interval" class="input-field">
+                        <option value="500">每 500 公尺</option>
+                        <option value="1000" selected>每 1 公里</option>
+                        <option value="2000">每 2 公里</option>
+                    </select>
+                    <div class="select-icon"><i data-lucide="chevron-down" size="20"></i></div>
+                </div>
+            </div>
+
+            <details class="feature-intro">
+                <summary><i data-lucide="info"></i>功能介紹</summary>
+                <div class="intro-content">
+                    <p>跑步配速工具。</p>
+                    <ul>
+                        <li>支援自定義目標與語音回報</li>
+                        <li>提供即時數據儀表板與語音播報功能</li>
+                        <li>跑後生成詳細訓練總結（含總里程、平均配速及每公里分段數據分析）</li>
+                    </ul>
+                    <p>協助您精確掌握訓練表現，適合長距離跑步、訓練與比賽使用。</p>
+                </div>
+            </details>
+        </div>
+
+        <div class="bottom-actions">
+            <button id="btn-start" class="btn btn-primary">開始跑步</button>
+        </div>
+    </div>
+
+    <!-- 2. 跑步中畫面 -->
+    <div id="active-view" class="view-container hidden">
+        <div class="scroll-content" style="display: flex; flex-direction: column;">
+            <div class="main-display">
+                <div class="label">經過時間</div>
+                <div id="disp-time" class="data-primary">00:00:00</div>
+            </div>
+            <div class="data-secondary-group">
+                <div class="data-card">
+                    <div class="label">距離 (km)</div>
+                    <div id="disp-dist" class="data-value">0.00</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">當前平均配速</div>
+                    <div id="disp-pace" class="data-value">--:--</div>
+                </div>
+            </div>
+        </div>
+        <div class="bottom-actions">
+            <div id="controls-running" class="btn-group">
+                <button id="btn-pause" class="btn btn-warning"><i data-lucide="pause"></i>暫停</button>
+            </div>
+            <div id="controls-paused" class="btn-group hidden">
+                <button id="btn-resume" class="btn btn-primary"><i data-lucide="play"></i>繼續</button>
+                <button id="btn-stop" class="btn btn-danger"><i data-lucide="square"></i>結束</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. 訓練總結畫面 -->
+    <div id="summary-view" class="view-container hidden">
+        <div class="scroll-content">
+            <div class="summary-header">
+                <h2>訓練總結</h2>
+                <p id="summary-date" style="color: var(--text-secondary); font-size: 0.9rem; margin: 6px 0 0;"></p>
+            </div>
+
+            <div class="summary-stats">
+                <div class="stat-item">
+                    <i data-lucide="map" style="color: var(--accent-color)"></i>
+                    <div class="label">距離</div>
+                    <div id="sum-dist">0.00</div>
+                </div>
+                <div class="stat-item">
+                    <i data-lucide="clock" style="color: var(--accent-color)"></i>
+                    <div class="label">時間</div>
+                    <div id="sum-time">00:00</div>
+                </div>
+                <div class="stat-item">
+                    <i data-lucide="zap" style="color: var(--accent-color)"></i>
+                    <div class="label">配速</div>
+                    <div id="sum-pace">--:--</div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>分段</th>
+                            <th>時間</th>
+                            <th>距離</th>
+                            <th>配速</th>
+                            <th>差距</th>
+                        </tr>
+                    </thead>
+                    <tbody id="split-table-body"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="bottom-actions">
+            <button id="btn-return" class="btn btn-primary">返回設定</button>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            status: 'idle',
+            startTime: 0,
+            accumulatedTime: 0,
+            totalDistance: 0,
+            lastPosition: null,
+            nextSpeechTarget: 0,
+            targetPaceMsPerMeter: 0,
+            splits: [],
+            lastSplitDist: 0,
+            lastSplitTime: 0,
+            settings: { targetDist: 0, targetTimeMs: 0, speechInterval: 1000 },
+            wakeLock: null,
+            watchId: null
+        };
+
+        const UI = {
+            setup: document.getElementById('setup-view'),
+            active: document.getElementById('active-view'),
+            summary: document.getElementById('summary-view'),
+            inputs: {
+                dist: document.getElementById('input-dist'),
+                h: document.getElementById('input-h'), m: document.getElementById('input-m'), s: document.getElementById('input-s'),
+                speech: document.getElementById('input-speech-interval')
+            },
+            preview: document.getElementById('target-pace-preview'),
+            display: {
+                time: document.getElementById('disp-time'),
+                dist: document.getElementById('disp-dist'),
+                pace: document.getElementById('disp-pace')
+            },
+            summaryDisp: {
+                date: document.getElementById('summary-date'),
+                dist: document.getElementById('sum-dist'),
+                time: document.getElementById('sum-time'),
+                pace: document.getElementById('sum-pace'),
+                table: document.getElementById('split-table-body')
+            },
+            btns: {
+                start: document.getElementById('btn-start'),
+                pause: document.getElementById('btn-pause'),
+                resume: document.getElementById('btn-resume'),
+                stop: document.getElementById('btn-stop'),
+                return: document.getElementById('btn-return')
+            },
+            ctrls: {
+                running: document.getElementById('controls-running'),
+                paused: document.getElementById('controls-paused')
+            },
+            // 新增 Lightbox 引用
+            lightbox: {
+                trigger: document.getElementById('author-trigger'),
+                overlay: document.getElementById('author-lightbox'),
+                close: document.getElementById('lightbox-close')
+            }
+        };
+
+        window.onload = () => {
+            lucide.createIcons();
+            loadSettings();
+            updatePreview();
+            Object.values(UI.inputs).forEach(input => {
+                input.addEventListener('input', () => { saveSettings(); updatePreview(); });
+            });
+            UI.btns.start.onclick = startRun;
+            UI.btns.pause.onclick = pauseRun;
+            UI.btns.resume.onclick = resumeRun;
+            UI.btns.stop.onclick = triggerSummary;
+            UI.btns.return.onclick = backToSetup;
+
+            // Lightbox 事件監聽
+            UI.lightbox.trigger.onclick = () => UI.lightbox.overlay.classList.add('active');
+            UI.lightbox.close.onclick = () => UI.lightbox.overlay.classList.remove('active');
+            UI.lightbox.overlay.onclick = (e) => {
+                if (e.target === UI.lightbox.overlay) UI.lightbox.overlay.classList.remove('active');
+            };
+        };
+
+        function notify(msg) {
+            const host = document.getElementById('notification-host');
+            const div = document.createElement('div');
+            div.className = 'notification';
+            div.innerHTML = `<i data-lucide="info" style="color:var(--warning-color)"></i><span>${msg}</span>`;
+            host.appendChild(div);
+            lucide.createIcons();
+            setTimeout(() => { div.style.opacity = '0'; setTimeout(() => div.remove(), 300); }, 3000);
+        }
+
+        async function startRun() {
+            const distVal = parseFloat(UI.inputs.dist.value);
+            const totalMs = ((parseInt(UI.inputs.h.value)||0)*3600 + (parseInt(UI.inputs.m.value)||0)*60 + (parseInt(UI.inputs.s.value)||0))*1000;
+            if (!distVal || distVal <= 0) return notify("請填寫有效的目標距離");
+            if (totalMs <= 0) return notify("請填寫目標完成時間");
+
+            state.settings.targetDist = distVal * 1000;
+            state.settings.targetTimeMs = totalMs;
+            state.settings.speechInterval = parseInt(UI.inputs.speech.value);
+            state.targetPaceMsPerMeter = totalMs / state.settings.targetDist;
+
+            state.status = 'starting';
+            state.accumulatedTime = 0;
+            state.totalDistance = 0;
+            state.lastPosition = null;
+            state.splits = [];
+            state.lastSplitDist = 0;
+            state.lastSplitTime = 0;
+            state.nextSpeechTarget = state.settings.speechInterval;
+
+            UI.setup.classList.add('hidden');
+            UI.active.classList.remove('hidden');
+            UI.ctrls.running.classList.remove('hidden');
+            UI.ctrls.paused.classList.add('hidden');
+
+            UI.display.time.textContent = "定位中...";
+
+            await enableWakeLock();
+            initGPS();
+        }
+
+        function pauseRun() {
+            state.status = 'paused';
+            state.accumulatedTime += performance.now() - state.startTime;
+            UI.display.time.textContent = formatTime(state.accumulatedTime);
+            UI.ctrls.running.classList.add('hidden');
+            UI.ctrls.paused.classList.remove('hidden');
+        }
+
+        function resumeRun() {
+            state.status = 'running';
+            state.startTime = performance.now();
+            UI.ctrls.paused.classList.add('hidden');
+            UI.ctrls.running.classList.remove('hidden');
+            requestAnimationFrame(loop);
+        }
+
+        function loop() {
+            if (state.status !== 'running') return;
+            const elapsed = state.accumulatedTime + (performance.now() - state.startTime);
+            UI.display.time.textContent = formatTime(elapsed);
+            const distKm = state.totalDistance / 1000;
+            UI.display.dist.textContent = distKm.toFixed(2);
+            if (distKm > 0.01) {
+                UI.display.pace.textContent = formatPace(elapsed / distKm);
+            }
+            requestAnimationFrame(loop);
+        }
+
+        function initGPS() {
+            state.watchId = navigator.geolocation.watchPosition(pos => {
+                if (state.status === 'starting') {
+                    state.status = 'running';
+                    state.startTime = performance.now();
+                    state.accumulatedTime = 0;
+                    state.totalDistance = 0;
+                    state.lastPosition = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+                    speak(`開始跑步，目標 ${state.settings.targetDist / 1000} 公里`);
+                    requestAnimationFrame(loop);
+                    return;
+                }
+
+                if (state.status !== 'running' || pos.coords.accuracy > 40) return;
+                if (state.lastPosition) {
+                    const d = getDist(state.lastPosition.lat, state.lastPosition.lon, pos.coords.latitude, pos.coords.longitude);
+                    if (d > 2) {
+                        state.totalDistance += d;
+                        checkMilestones();
+                    }
+                }
+                state.lastPosition = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            }, (err) => {
+                if (state.status === 'starting') {
+                    notify("無法取得定位權限，請重試");
+                    state.status = 'idle';
+                    UI.active.classList.add('hidden');
+                    UI.setup.classList.remove('hidden');
+                }
+            }, { enableHighAccuracy: true });
+        }
+
+        function checkMilestones() {
+            if (state.totalDistance >= state.nextSpeechTarget) {
+                const nowTotalTime = state.accumulatedTime + (performance.now() - state.startTime);
+                const distKm = state.totalDistance / 1000;
+                const currentAvgPaceMs = nowTotalTime / distKm;
+                const expectedTime = state.targetPaceMsPerMeter * state.totalDistance;
+                const deltaSeconds = Math.round((nowTotalTime - expectedTime) / 1000);
+
+                const splitDist = (state.totalDistance - state.lastSplitDist) / 1000;
+                const splitTime = nowTotalTime - state.lastSplitTime;
+                const splitExpected = state.targetPaceMsPerMeter * (state.totalDistance - state.lastSplitDist);
+
+                state.splits.push({
+                    id: state.splits.length + 1,
+                    time: formatTimeShort(splitTime),
+                    dist: splitDist.toFixed(2),
+                    pace: formatPace(splitTime / splitDist),
+                    delta: Math.round((splitTime - splitExpected) / 1000)
+                });
+
+                state.lastSplitDist = state.totalDistance;
+                state.lastSplitTime = nowTotalTime;
+
+                const paceStr = `${Math.floor(currentAvgPaceMs/60000)}分${Math.floor((currentAvgPaceMs%60000)/1000)}秒`;
+                let deltaReport = deltaSeconds > 0 ? `落後 ${deltaSeconds} 秒` : `領先 ${Math.abs(deltaSeconds)} 秒`;
+                if (deltaSeconds === 0) deltaReport = "符合目標配速";
+
+                speak(`距離 ${distKm.toFixed(1)} 公里，配速 ${paceStr}，${deltaReport}`);
+                state.nextSpeechTarget += state.settings.speechInterval;
+            }
+        }
+
+        function triggerSummary() {
+            const snapTime = state.status === 'paused' ? state.accumulatedTime : state.accumulatedTime + (performance.now() - state.startTime);
+            showSummary(snapTime);
+        }
+
+        function showSummary(finalTime) {
+            if (state.watchId) navigator.geolocation.clearWatch(state.watchId);
+            if (state.wakeLock) state.wakeLock.release();
+            state.status = 'idle';
+
+            const finalDist = state.totalDistance / 1000;
+
+            if (state.totalDistance > state.lastSplitDist) {
+                const lastSplitDist = (state.totalDistance - state.lastSplitDist) / 1000;
+                const lastSplitTime = finalTime - state.lastSplitTime;
+                const lastSplitExpected = state.targetPaceMsPerMeter * (state.totalDistance - state.lastSplitDist);
+                state.splits.push({
+                    id: state.splits.length + 1,
+                    time: formatTimeShort(lastSplitTime),
+                    dist: lastSplitDist.toFixed(2),
+                    pace: formatPace(lastSplitTime / lastSplitDist),
+                    delta: Math.round((lastSplitTime - lastSplitExpected) / 1000)
+                });
+            }
+
+            UI.summaryDisp.date.textContent = new Date().toLocaleString();
+            UI.summaryDisp.dist.textContent = finalDist.toFixed(2);
+            UI.summaryDisp.time.textContent = formatTimeShort(finalTime);
+            UI.summaryDisp.pace.textContent = finalDist > 0 ? formatPace(finalTime / finalDist) : "--:--";
+
+            let tableHtml = "";
+            let totalDelta = 0;
+            state.splits.forEach(s => {
+                totalDelta += s.delta;
+                const deltaClass = s.delta > 0 ? 'delta-pos' : 'delta-neg';
+                const deltaSign = s.delta > 0 ? '+' : '';
+                tableHtml += `<tr><td>${s.id}</td><td>${s.time}</td><td>${s.dist}</td><td>${s.pace}</td><td class="${deltaClass}">${deltaSign}${s.delta}</td></tr>`;
+            });
+
+            const finalPace = finalDist > 0 ? formatPace(finalTime / finalDist) : "--:--";
+            const totalDeltaClass = totalDelta > 0 ? 'delta-pos' : 'delta-neg';
+            const totalDeltaSign = totalDelta > 0 ? '+' : '';
+            tableHtml += `<tr class="row-total"><td>總計</td><td>${formatTimeShort(finalTime)}</td><td>${finalDist.toFixed(2)}</td><td>${finalPace}</td><td class="${totalDeltaClass}">${totalDeltaSign}${totalDelta}</td></tr>`;
+
+            UI.summaryDisp.table.innerHTML = tableHtml;
+            UI.active.classList.add('hidden');
+            UI.summary.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function backToSetup() {
+            UI.summary.classList.add('hidden');
+            UI.setup.classList.remove('hidden');
+            loadSettings();
+            updatePreview();
+        }
+
+        function speak(t) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(t);
+            u.lang = 'zh-TW';
+            window.speechSynthesis.speak(u);
+        }
+
+        async function enableWakeLock() {
+            try { if ('wakeLock' in navigator) state.wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {}
+        }
+
+        function getDist(lat1, lon1, lat2, lon2) {
+            const R = 6371000;
+            const dLat = (lat2-lat1)*Math.PI/180;
+            const dLon = (lon2-lon1)*Math.PI/180;
+            const a = Math.sin(dLat / 2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon / 2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+
+        function formatTime(ms) {
+            const s = Math.floor(ms/1000);
+            return `${pad(Math.floor(s/3600))}:${pad(Math.floor((s%3600)/60))}:${pad(s%60)}`;
+        }
+
+        function formatTimeShort(ms) {
+            const s = Math.floor(ms/1000);
+            const m = Math.floor(s/60);
+            return `${pad(m)}:${pad(s%60)}`;
+        }
+
+        function formatPace(msPerKm) {
+            const s = Math.floor(msPerKm/1000);
+            return `${pad(Math.floor(s/60))}:${pad(s%60)}`;
+        }
+
+        function pad(n) { return n < 10 ? '0'+n : n; }
+
+        function saveSettings() {
+            const s = {};
+            Object.keys(UI.inputs).forEach(k => s[k] = UI.inputs[k].value);
+            localStorage.setItem('runner_settings', JSON.stringify(s));
+        }
+
+        function loadSettings() {
+            const s = JSON.parse(localStorage.getItem('runner_settings'));
+            if (s) Object.keys(s).forEach(k => UI.inputs[k].value = s[k]);
+        }
+
+        function updatePreview() {
+            const d = parseFloat(UI.inputs.dist.value);
+            const ms = ((parseInt(UI.inputs.h.value)||0)*3600 + (parseInt(UI.inputs.m.value)||0)*60 + (parseInt(UI.inputs.s.value)||0))*1000;
+            UI.preview.textContent = (d > 0 && ms > 0) ? `目標配速: ${formatPace(ms/d)} /km` : "";
+        }
+    </script>
+</body>
+</html>
