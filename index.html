@@ -296,6 +296,13 @@
 
         .time-inputs { display: flex; gap: var(--spacing-sm); }
         .time-inputs input { text-align: center; }
+        .time-separator {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
 
         .select-wrapper { position: relative; width: 100%; }
         .select-icon {
@@ -309,12 +316,53 @@
             align-items: center;
         }
 
+        .pace-presets {
+            overflow: hidden;
+        }
+        .pace-presets-list {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            overflow-x: auto;
+            opacity: 0;
+            max-height: 0;
+            transform: translateY(-6px);
+            transition:
+                max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.25s ease,
+                transform 0.25s ease;
+        }
+        .pace-presets-list.active {
+            max-height: 60px;
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .pace-btn {
+            border: 1px solid var(--accent-color);
+            padding: 8px 20px;
+            border-radius: 999px;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .pace-btn.active {
+            transform: scale(0.95);
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: #000;
+            font-weight: bold;
+        }
+
         .feature-intro {
             margin-top: 10px;
             border: 1px solid #333;
             border-radius: var(--radius);
             background: rgba(255, 255, 255, 0.03);
             overflow: hidden;
+            margin-bottom: 24px;
         }
         summary { list-style: none; padding: 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 500; font-size: 0.95rem; }
         .intro-content { padding: 0 16px 16px 16px; color: var(--text-secondary); font-size: 0.9rem; line-height: 1.6; }
@@ -411,22 +459,38 @@
 
             <div class="input-group">
                 <div class="label-row">
-                    <label class="input-label"><i data-lucide="map-pin"></i>目標距離 (公里)</label>
-                </div>
-                <input type="number" id="input-dist" class="input-field" placeholder="例如: 5" inputmode="decimal">
-            </div>
-
-            <div class="input-group">
-                <div class="label-row">
-                    <label class="input-label"><i data-lucide="clock"></i>目標完成時間 (時:分:秒)</label>
-                    <span id="target-pace-preview" style="color: var(--accent-color); font-size: 0.9rem; font-weight: 600;"></span>
+                    <label class="input-label"><i data-lucide="zap"></i>目標配速（每公里）</label>
                 </div>
                 <div class="time-inputs">
-                    <input type="number" id="input-h" class="input-field" placeholder="00">
-                    <input type="number" id="input-m" class="input-field" placeholder="00">
-                    <input type="number" id="input-s" class="input-field" placeholder="00">
+                    <input type="number" id="input-pace-m" class="input-field" placeholder="minute" inputmode="numeric">
+                    <span class="time-separator">:</span>
+                    <input type="number" id="input-pace-s" class="input-field" placeholder="second" inputmode="numeric">
+                </div>
+                <div class="pace-presets">
+                    <div class="pace-presets-list">
+                        <button class="pace-btn" data-m="5" data-s="0">5:00</button>
+                        <button class="pace-btn" data-m="5" data-s="30">5:30</button>
+                        <button class="pace-btn" data-m="6" data-s="0">6:00</button>
+                    </div>
                 </div>
             </div>
+
+            <details class="feature-intro">
+                <summary><i data-lucide="info"></i>目標配速是什麼？</summary>
+                <div class="intro-content">
+                    <p>
+                        目標配速代表「每跑 1 公里需要花多少時間」。
+                        例如配速 5:30 代表每公里需 5 分 30 秒完成。
+                    </p>
+                    <p>建議配速範圍：</p>
+                    <ul>
+                        <li>初階跑者：6:30 – 8:00 / km</li>
+                        <li>中階跑者：5:00 – 6:30 / km</li>
+                        <li>進階跑者：3:30 – 5:00 / km</li>
+                    </ul>
+                    <p>建議先以能穩定完成全程的配速作為目標。</p>
+                </div>
+            </details>
 
             <div class="input-group">
                 <div class="label-row">
@@ -555,7 +619,7 @@
             splits: [],
             lastSplitDist: 0,
             lastSplitTime: 0,
-            settings: { targetDist: 0, targetTimeMs: 0, speechInterval: 1000 },
+            settings: { targetPaceMs: 0, speechInterval: 1000 },
             wakeLock: null,
             watchId: null
         };
@@ -565,12 +629,10 @@
             active: document.getElementById('active-view'),
             summary: document.getElementById('summary-view'),
             inputs: {
-                dist: document.getElementById('input-dist'),
-                h: document.getElementById('input-h'), m: document.getElementById('input-m'), s: document.getElementById('input-s'),
+                paceM: document.getElementById('input-pace-m'),
+                paceS: document.getElementById('input-pace-s'),
                 speech: document.getElementById('input-speech-interval')
             },
-            intro: document.querySelector('.feature-intro'),
-            preview: document.getElementById('target-pace-preview'),
             display: {
                 time: document.getElementById('disp-time'),
                 dist: document.getElementById('disp-dist'),
@@ -604,9 +666,9 @@
         window.onload = () => {
             lucide.createIcons();
             loadSettings();
-            updatePreview();
+            loadListener();
             Object.values(UI.inputs).forEach(input => {
-                input.addEventListener('input', () => { saveSettings(); updatePreview(); });
+                input.addEventListener('input', () => { saveSettings(); });
             });
             UI.btns.start.onclick = startRun;
             UI.btns.pause.onclick = pauseRun;
@@ -619,15 +681,6 @@
             UI.lightbox.overlay.onclick = (e) => {
                 if (e.target === UI.lightbox.overlay) UI.lightbox.overlay.classList.remove('active');
             };
-
-            UI.intro.addEventListener('toggle', () => {
-                setTimeout(() => {
-                    UI.intro.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
-                    });
-                }, 150);
-            });
         };
 
         function notify(msg) {
@@ -641,15 +694,18 @@
         }
 
         async function startRun() {
-            const distVal = parseFloat(UI.inputs.dist.value);
-            const totalMs = ((parseInt(UI.inputs.h.value)||0)*3600 + (parseInt(UI.inputs.m.value)||0)*60 + (parseInt(UI.inputs.s.value)||0))*1000;
-            if (!distVal || distVal <= 0) return notify("請填寫有效的目標距離");
-            if (totalMs <= 0) return notify("請填寫目標完成時間");
+            const paceMin = parseInt(UI.inputs.paceM.value) || 0;
+            const paceSec = parseInt(UI.inputs.paceS.value) || 0;
 
-            state.settings.targetDist = distVal * 1000;
-            state.settings.targetTimeMs = totalMs;
+            if (paceMin === 0 && paceSec === 0) return notify("請填寫目標配速");
+            if (paceMin > 60 || paceSec > 60) return notify("請填寫有效的目標配速");
+
+            const paceMs = (paceMin * 60 + paceSec) * 1000;
+
             state.settings.speechInterval = parseInt(UI.inputs.speech.value);
-            state.targetPaceMsPerMeter = totalMs / state.settings.targetDist;
+            state.settings.targetPaceMs = paceMs;
+            // 每公尺所需毫秒數：(總秒數 * 1000毫秒) / 1000公尺 = 總秒數
+            state.targetPaceMsPerMeter = paceMs / 1000;
 
             state.status = 'starting';
             state.accumulatedTime = 0;
@@ -708,7 +764,15 @@
                     state.accumulatedTime = 0;
                     state.totalDistance = 0;
                     state.lastPosition = { lat: pos.coords.latitude, lon: pos.coords.longitude };
-                    speak(`開始跑步，目標 ${state.settings.targetDist / 1000} 公里`);
+
+                    const paceMs = state.settings.targetPaceMs;
+                    const minutes = Math.floor(paceMs / 60000);
+                    const seconds = Math.floor((paceMs % 60000) / 1000);
+                    const paceStr = (minutes > 0 && seconds > 0)
+                                    ? `${minutes} 分 ${seconds} 秒`
+                                    : (minutes > 0 ? `${minutes} 分鐘` : `${seconds} 秒`);
+
+                    speak(`開始跑步，目標配速每公里 ${paceStr}`);
                     requestAnimationFrame(loop);
                     return;
                 }
@@ -738,7 +802,7 @@
                 const distKm = state.totalDistance / 1000;
                 const currentAvgPaceMs = nowTotalTime / distKm;
                 const targetPacePerKm = state.targetPaceMsPerMeter * 1000;
-                const deltaSeconds = Math.round((currentAvgPaceMs - targetPacePerKm) / 1000);
+                const deltaSeconds = Math.abs(Math.round((currentAvgPaceMs - targetPacePerKm) / 1000));
                 const splitDistMeters = 1000;
 
                 if (state.totalDistance - state.lastSplitDist >= splitDistMeters) {
@@ -757,8 +821,12 @@
                     state.lastSplitTime = nowTotalTime;
                 }
 
-                const paceStr = `${Math.floor(currentAvgPaceMs/60000)} 分 ${Math.floor((currentAvgPaceMs%60000)/1000)} 秒`;
-                let deltaReport = deltaSeconds > 0 ? `落後目標配速 ${deltaSeconds} 秒` : `領先目標配速 ${Math.abs(deltaSeconds)} 秒`;
+                const minutes = Math.floor(currentAvgPaceMs / 60000);
+                const seconds = Math.floor((currentAvgPaceMs % 60000) / 1000);
+                const paceStr = (minutes > 0 && seconds > 0)
+                                ? `${minutes} 分 ${seconds} 秒`
+                                : (minutes > 0 ? `${minutes} 分鐘` : `${seconds} 秒`);
+                let deltaReport = deltaSeconds > 0 ? `落後目標配速 ${deltaSeconds} 秒` : `領先目標配速 ${deltaSeconds} 秒`;
                 if (deltaSeconds === 0) deltaReport = "符合目標配速";
 
                 speak(`目前距離 ${distKm.toFixed(1)} 公里，平均配速 ${paceStr}，${deltaReport}`);
@@ -822,7 +890,6 @@
             UI.summary.classList.add('hidden');
             UI.setup.classList.remove('hidden');
             loadSettings();
-            updatePreview();
         }
 
         function unlockSpeech() {
@@ -881,13 +948,51 @@
 
         function loadSettings() {
             const s = JSON.parse(localStorage.getItem('runner_settings'));
-            if (s) Object.keys(s).forEach(k => UI.inputs[k].value = s[k]);
+            if (s) Object.keys(s).forEach(k => { UI.inputs[k] && (UI.inputs[k].value = s[k]); });
         }
+        function loadListener() {
+            const presetList = document.querySelector('.pace-presets-list');
+            const paceInputs = [UI.inputs.paceM, UI.inputs.paceS];
 
-        function updatePreview() {
-            const d = parseFloat(UI.inputs.dist.value);
-            const ms = ((parseInt(UI.inputs.h.value)||0)*3600 + (parseInt(UI.inputs.m.value)||0)*60 + (parseInt(UI.inputs.s.value)||0))*1000;
-            UI.preview.textContent = (d > 0 && ms > 0) ? `目標配速: ${formatPace(ms/d)} /km` : "";
+            paceInputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    presetList.classList.add('active');
+                });
+            });
+
+            document.querySelectorAll('.pace-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const m = btn.dataset.m;
+                    const s = btn.dataset.s;
+
+                    UI.inputs.paceM.value = m;
+                    UI.inputs.paceS.value = s;
+                    saveSettings();
+
+                    btn.classList.add('active');
+                    setTimeout(() => btn.classList.remove('active'), 100);
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.pace-presets') &&
+                    !e.target.closest('.time-inputs')) {
+                    presetList.classList.remove('active');
+                }
+            });
+
+            document.querySelectorAll('.feature-intro').forEach(intro => {
+                intro.addEventListener('toggle', (e) => {
+                    if (e.target.open) {
+                        setTimeout(() => {
+                            e.target.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+                        }, 150);
+                    }
+                });
+            });
         }
     </script>
 </body>
