@@ -809,7 +809,7 @@
                 const distKm = state.totalDistance / 1000;
                 const currentAvgPaceMs = nowTotalTime / distKm;
                 const targetPacePerKm = state.targetPaceMsPerMeter * 1000;
-                const deltaSeconds = Math.abs(Math.round((currentAvgPaceMs - targetPacePerKm) / 1000));
+                const deltaSeconds = Math.floor((currentAvgPaceMs - targetPacePerKm) / 1000);
                 const splitDistMeters = 1000;
 
                 if (state.totalDistance - state.lastSplitDist >= splitDistMeters) {
@@ -821,7 +821,7 @@
                         time: formatTimeShort(splitTime),
                         dist: (splitDistMeters / 1000).toFixed(2),
                         pace: formatPace(splitTime / (splitDistMeters / 1000)),
-                        delta: Math.round((splitTime - splitExpected) / 1000)
+                        delta: Math.floor((splitTime - splitExpected) / 1000)
                     });
 
                     state.lastSplitDist += 1000;
@@ -833,7 +833,7 @@
                 const paceStr = (minutes > 0 && seconds > 0)
                                 ? `${minutes} 分 ${seconds} 秒`
                                 : (minutes > 0 ? `${minutes} 分鐘` : `${seconds} 秒`);
-                let deltaReport = deltaSeconds > 0 ? `落後目標配速 ${deltaSeconds} 秒` : `領先目標配速 ${deltaSeconds} 秒`;
+                let deltaReport = deltaSeconds > 0 ? `落後目標配速 ${deltaSeconds} 秒` : `領先目標配速 ${Math.abs(deltaSeconds)} 秒`;
                 if (deltaSeconds === 0) deltaReport = "符合目標配速";
 
                 speak(`目前距離 ${distKm.toFixed(1)} 公里，平均配速 ${paceStr}，${deltaReport}`);
@@ -864,7 +864,7 @@
                     time: formatTimeShort(lastSplitTime),
                     dist: lastSplitDist.toFixed(2),
                     pace: formatPace(lastSplitTime / lastSplitDist),
-                    delta: Math.round((lastSplitTime - lastSplitExpected) / 1000)
+                    delta: Math.floor((lastSplitTime - lastSplitExpected) / 1000)
                 });
             }
 
